@@ -22,7 +22,7 @@ public class SplashActivity extends AppCompatActivity {
         {
             startActivity(NotWorkedActivity.class);
         } else {
-            startActivity(MainActivity.class);
+            startActivity(StartActivity.class);
         }
     }
 

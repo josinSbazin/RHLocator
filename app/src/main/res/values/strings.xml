@@ -5,4 +5,17 @@
     <string name="go_to_settings">Настроить</string>
     <string name="permission_error_label">Ошибка разрешений</string>
     <string name="main_label">В каком ты городе?</string>
+
+    <string name="no_geocoder_available">Geocoder недоступен</string>
+
+    <string name="fetch_address">Получить адрес</string>
+
+    <string name="address_found">Адрес найден</string>
+
+    <string name="no_address_found">К сожалению, адрес не найден</string>
+    <string name="no_location_data_provided">Нет данных о местоположении</string>
+    <string name="service_not_available">К сожалению, служба не доступна</string>
+    <string name="invalid_lat_long_used">Используется нудопустимая долгота или широта</string>
+    <string name="check_permission_message">Проверьте разрещения</string>
+    <string name="list_button_title">Список</string>
 </resources>
