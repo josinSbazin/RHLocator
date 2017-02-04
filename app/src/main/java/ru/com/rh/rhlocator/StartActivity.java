@@ -59,7 +59,6 @@ public class StartActivity extends AppCompatActivity implements
         buildGoogleApiClient();
 
         checkPermission();
-        retrieveLocation();
     }
 
     //start for checking permission methods
@@ -68,13 +67,18 @@ public class StartActivity extends AppCompatActivity implements
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(StartActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        } else {
+            retrieveLocation();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (grantResults.length > 0) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) recreate();
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mAddressOutput = "";
+                recreate();
+            }
             else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(StartActivity.this,
                         Manifest.permission.ACCESS_FINE_LOCATION)){
@@ -153,22 +157,26 @@ public class StartActivity extends AppCompatActivity implements
                 if (mAddressRequested) {
                     startIntentService();
                 }
+            } else {
+                somethingWrong();
             }
         } catch (SecurityException e) {
-            showToast(getString(R.string.check_permission_message));
-            e.printStackTrace();
+            checkPermission();
         }
     }
 
     protected void startIntentService() {
         Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+
+        Parcer par = new Parcer(mResultReceiver, mLastLocation);
+        intent.putExtra(Constants.RECEIVER_AND_LOCATION_DATA, par);
+
         startService(intent);
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
+        somethingWrong();
     }
 
     @Override
@@ -234,5 +242,12 @@ public class StartActivity extends AppCompatActivity implements
             updateUIWidgets();
             isRetrieveLocation = true;
         }
+    }
+
+    private void somethingWrong() {
+        mAddressOutput = getString(R.string.service_not_available);
+        displayAddressOutput();
+        mAddressRequested = false;
+        updateUIWidgets();
     }
 }

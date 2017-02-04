@@ -25,13 +25,16 @@ public class FetchAddressIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         String errorMessage = "";
-        mReceiver = intent.getParcelableExtra(Constants.RECEIVER);
+
+        Parcer parcer = intent.getParcelableExtra(Constants.RECEIVER_AND_LOCATION_DATA);
+
+        mReceiver = parcer.resultReceiver;
         if (mReceiver == null) {
             Log.wtf(TAG, "No receiver received. There is nowhere to send the results.");
             return;
         }
 
-        Location location = intent.getParcelableExtra(Constants.LOCATION_DATA_EXTRA);
+        Location location = parcer.location;
 
         if (location == null) {
             errorMessage = getString(R.string.no_location_data_provided);

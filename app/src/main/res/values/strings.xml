@@ -10,7 +10,7 @@
 
     <string name="fetch_address">Получить адрес</string>
 
-    <string name="address_found">Адрес найден</string>
+    <string name="address_found">Город найден</string>
 
     <string name="no_address_found">К сожалению, адрес не найден</string>
     <string name="no_location_data_provided">Нет данных о местоположении</string>
