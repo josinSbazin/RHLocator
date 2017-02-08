@@ -245,7 +245,7 @@ public class StartActivity extends AppCompatActivity implements
     }
 
     private void somethingWrong() {
-        mAddressOutput = getString(R.string.service_not_available);
+        mAddressOutput = getString(R.string.something_wrong);
         displayAddressOutput();
         mAddressRequested = false;
         updateUIWidgets();
