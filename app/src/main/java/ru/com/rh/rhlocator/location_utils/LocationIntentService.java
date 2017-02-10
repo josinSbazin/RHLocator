@@ -75,7 +75,12 @@ public abstract class LocationIntentService extends IntentService {
                 errorMessage = getString(R.string.no_address_found);
                 Log.e(TAG, errorMessage);
             }
-            deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
+            String address = GeocoderByHttpAndJsonForGenymotion.getCurrentLocationViaJSON(location.getLatitude(), location.getLongitude());
+            if (address != null && !address.equals(""))
+                deliverResultToReceiver(Constants.SUCCESS_RESULT, address);
+            else {
+                deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
+            }
         } else {
             Address address = addresses.get(0);
             String addressFragments = address.getLocality();
