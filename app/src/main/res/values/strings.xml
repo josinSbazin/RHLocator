@@ -12,8 +12,8 @@
 
     <string name="address_found">Город найден</string>
 
-    <string name="no_address_found">К сожалению, адрес не найден</string>
-    <string name="no_location_data_provided">Нет данных о местоположении</string>
+    <string name="no_address_found">Координаты получены. Не могу найти адресс</string>
+    <string name="no_location_data_provided">Не могу получить данные о местоположении. \nПроверьте, включена ли мобильная сеть или GPS.</string>
     <string name="service_not_available">К сожалению, служба не доступна</string>
     <string name="something_wrong">Что-то не так</string>
     <string name="invalid_lat_long_used">Используется нудопустимая долгота или широта</string>
