@@ -2,38 +2,40 @@ package ru.com.rh.rhlocator;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Geocoder;
-import android.location.Location;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationServices;
+import java.util.ArrayList;
 
-public class StartActivity extends AppCompatActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener {
+import ru.com.rh.rhlocator.data.Contract;
+import ru.com.rh.rhlocator.data.SQLHelper;
+
+public class StartActivity extends AppCompatActivity {
 
     protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
     protected static final String LOCATION_ADDRESS_KEY = "location-address";
     protected static final String IS_CREATE_KEY = "is-create";
+    private static final String TAG = "StartActivity";
 
+    private SQLHelper mSQLHelper;
     private TextView mCityTW;
-    protected GoogleApiClient mGoogleApiClient;
-    protected Location mLastLocation;
     protected boolean mAddressRequested;
     protected String mAddressOutput;
     private AddressResultReceiver mResultReceiver;
@@ -50,18 +52,31 @@ public class StartActivity extends AppCompatActivity implements
         mCityTW = (TextView) findViewById(R.id.cityTW);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mListButton = (Button) findViewById(R.id.listButton);
+        mSQLHelper = new SQLHelper(this);
+
+        mListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FragmentManager manager = getSupportFragmentManager();
+                ItemFragment dialogFragment = new ItemFragment();
+                Bundle bundle = new Bundle();
+                String[] array = getStringsFromDB();
+                bundle.putStringArray(Constants.CITIES_ARRAY_DATA_KEY, array);
+                dialogFragment.setArguments(bundle);
+                dialogFragment.show(manager, "dialog");
+            }
+        });
 
         mAddressRequested = false;
         mAddressOutput = "";
 
         updateValuesFromBundle(savedInstanceState);
         updateUIWidgets();
-        buildGoogleApiClient();
 
         checkPermission();
     }
 
-    //start for checking permission methods
+    //begin checking permission methods
     private void checkPermission() {
         if (ActivityCompat.checkSelfPermission(StartActivity.this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -77,7 +92,7 @@ public class StartActivity extends AppCompatActivity implements
         if (grantResults.length > 0) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 mAddressOutput = "";
-                recreate();
+                retrieveLocation();
             }
             else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(StartActivity.this,
@@ -106,7 +121,16 @@ public class StartActivity extends AppCompatActivity implements
         finish();
         startActivity(i);
     }
-    //end for checking permission methods
+    //end checking permission methods
+
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean(IS_CREATE_KEY, isRetrieveLocation);
+        savedInstanceState.putBoolean(ADDRESS_REQUESTED_KEY, mAddressRequested);
+        savedInstanceState.putString(LOCATION_ADDRESS_KEY, mAddressOutput);
+        super.onSaveInstanceState(savedInstanceState);
+    }
 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
@@ -123,69 +147,40 @@ public class StartActivity extends AppCompatActivity implements
         }
     }
 
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
+    class AddressResultReceiver extends ResultReceiver {
+        AddressResultReceiver(Handler handler) {
+            super(handler);
         }
-    }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        try {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                if (!Geocoder.isPresent()) {
-                    Toast.makeText(this, R.string.no_geocoder_available, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                if (mAddressRequested) {
-                    startIntentService();
-                }
-            } else {
-                somethingWrong();
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            displayAddressOutput();
+
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                showToast(getString(R.string.address_found));
+                insert(mAddressOutput);
             }
-        } catch (SecurityException e) {
-            checkPermission();
+
+            mAddressRequested = false;
+            updateUIWidgets();
         }
     }
 
-    protected void startIntentService() {
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-
-        Parcer par = new Parcer(mResultReceiver, mLastLocation);
-        intent.putExtra(Constants.RECEIVER_AND_LOCATION_DATA, par);
-
+    private void startIntentService() {
+        Intent intent = new Intent(this, LocationIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
         startService(intent);
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult result) {
-        somethingWrong();
-    }
+    private void retrieveLocation() {
+        if (!isRetrieveLocation) {
+            isRetrieveLocation = true;
 
-    @Override
-    public void onConnectionSuspended(int cause) {
-        mGoogleApiClient.connect();
-    }
-
-    protected void displayAddressOutput() {
-        mCityTW.setText(mAddressOutput);
+            startIntentService();
+            mAddressRequested = true;
+            updateUIWidgets();
+        }
     }
 
 
@@ -199,55 +194,53 @@ public class StartActivity extends AppCompatActivity implements
         }
     }
 
+    protected void displayAddressOutput() {
+        mCityTW.setText(mAddressOutput);
+    }
+
     protected void showToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
+    private void insert(String s) {
+        SQLiteDatabase db = mSQLHelper.getWritableDatabase();
 
-        savedInstanceState.putBoolean(IS_CREATE_KEY, isRetrieveLocation);
+        ContentValues value = new ContentValues();
+        value.put(Contract.COLUMN_CITY_NAME, s);
 
-        savedInstanceState.putBoolean(ADDRESS_REQUESTED_KEY, mAddressRequested);
+        long newRowId = db.insert(Contract.TABLE_NAME, null, value);
 
-        savedInstanceState.putString(LOCATION_ADDRESS_KEY, mAddressOutput);
-        super.onSaveInstanceState(savedInstanceState);
+        if (newRowId == -1) {
+            Log.d(TAG, "=(");
+        } else {
+            Log.d(TAG, "=)");
+        }
     }
 
-    class AddressResultReceiver extends ResultReceiver {
-        AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
+    String[] getStringsFromDB() {
+        SQLiteDatabase db = mSQLHelper.getReadableDatabase();
 
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-            mAddressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
-            displayAddressOutput();
+        ArrayList<String> list = new ArrayList<String>();
 
-            if (resultCode == Constants.SUCCESS_RESULT) {
-                showToast(getString(R.string.address_found));
+        String query = "SELECT * FROM " + Contract.TABLE_NAME;
+        Cursor cursor  = db.rawQuery(query, null);
+        try {
+            while (cursor.moveToNext()) {
+                String note = cursor.getString(cursor.getColumnIndex(Contract.COLUMN_CITY_NAME));
+                list.add(note);
             }
-
-            mAddressRequested = false;
-            updateUIWidgets();
+        } finally {
+        cursor.close();
         }
+        return castToString(list.toArray());
     }
 
-    private void retrieveLocation() {
-        if (!isRetrieveLocation) {
-            if (mGoogleApiClient.isConnected() && mLastLocation != null) {
-                startIntentService();
-            }
-            mAddressRequested = true;
-            updateUIWidgets();
-            isRetrieveLocation = true;
+    String[] castToString(Object[] objects) {
+        if (objects == null || objects.length == 0) return null;
+        String[] result = new String[objects.length];
+        for (int i = 0; i < objects.length; i++) {
+            result[i] = (String)objects[i];
         }
-    }
-
-    private void somethingWrong() {
-        mAddressOutput = getString(R.string.something_wrong);
-        displayAddressOutput();
-        mAddressRequested = false;
-        updateUIWidgets();
+        return result;
     }
 }

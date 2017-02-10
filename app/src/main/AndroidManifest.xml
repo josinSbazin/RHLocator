@@ -23,7 +23,7 @@
         <activity android:name=".NotWorkedActivity"
             android:label="@string/permission_error_label"/>
         <service
-            android:name=".FetchAddressIntentService"
+            android:name=".LocationIntentService"
             android:exported="false"/>
     </application>
 

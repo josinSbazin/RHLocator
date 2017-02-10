@@ -11,7 +11,9 @@ final class Constants {
     private static final String PACKAGE_NAME =
       "ru.com.rh.rhlocator";
 
-    static final String RECEIVER_AND_LOCATION_DATA = PACKAGE_NAME + ".RECEIVER_AND_LOCATION_DATA_EXTRA";
+    static final String RECEIVER = PACKAGE_NAME + ".RECEIVER_EXTRA";
 
     static final String RESULT_DATA_KEY = PACKAGE_NAME + ".RESULT_DATA_KEY";
+
+    static final String CITIES_ARRAY_DATA_KEY = PACKAGE_NAME + ".CITIES";
 }
