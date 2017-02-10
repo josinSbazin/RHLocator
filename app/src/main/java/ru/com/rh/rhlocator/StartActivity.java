@@ -22,10 +22,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+
 import java.util.ArrayList;
 
 import ru.com.rh.rhlocator.data.Contract;
 import ru.com.rh.rhlocator.data.SQLHelper;
+import ru.com.rh.rhlocator.location_utils.LocationIntentServiceWithGoogleApi;
+import ru.com.rh.rhlocator.location_utils.LocationIntentServiceWithLocationManager;
 
 public class StartActivity extends AppCompatActivity {
 
@@ -168,7 +173,13 @@ public class StartActivity extends AppCompatActivity {
     }
 
     private void startIntentService() {
-        Intent intent = new Intent(this, LocationIntentService.class);
+        Intent intent;
+        if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS
+                && GoogleApiAvailability.GOOGLE_PLAY_SERVICES_VERSION_CODE >= 10010000) {
+            intent = new Intent(this, LocationIntentServiceWithGoogleApi.class);
+        } else {
+            intent = new Intent(this, LocationIntentServiceWithLocationManager.class);
+        }
         intent.putExtra(Constants.RECEIVER, mResultReceiver);
         startService(intent);
     }

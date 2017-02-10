@@ -19,4 +19,5 @@
     <string name="invalid_lat_long_used">Используется нудопустимая долгота или широта</string>
     <string name="check_permission_message">Проверьте разрещения</string>
     <string name="list_button_title">Список</string>
+    <string name="perm_probl">Permission problem</string>
 </resources>
