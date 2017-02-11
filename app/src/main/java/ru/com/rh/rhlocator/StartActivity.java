@@ -34,18 +34,18 @@ import ru.com.rh.rhlocator.location_utils.LocationIntentServiceWithLocationManag
 
 public class StartActivity extends AppCompatActivity {
 
-    protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
-    protected static final String LOCATION_ADDRESS_KEY = "location-address";
-    protected static final String IS_CREATE_KEY = "is-create";
+    private static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
+    private static final String LOCATION_ADDRESS_KEY = "location-address";
+    private static final String IS_CREATE_KEY = "is-create";
     private static final String TAG = "StartActivity";
 
     private SQLHelper mSQLHelper;
     private TextView mCityTW;
-    protected boolean mAddressRequested;
-    protected String mAddressOutput;
+    private boolean mAddressRequested;
+    private String mAddressOutput;
     private AddressResultReceiver mResultReceiver;
-    ProgressBar mProgressBar;
-    Button mListButton;
+    private ProgressBar mProgressBar;
+    private Button mListButton;
     private boolean isRetrieveLocation = false;
 
     @Override
@@ -205,11 +205,11 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
-    protected void displayAddressOutput() {
+    private void displayAddressOutput() {
         mCityTW.setText(mAddressOutput);
     }
 
-    protected void showToast(String text) {
+    private void showToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
@@ -228,7 +228,7 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
-    String[] getStringsFromDB() {
+    private String[] getStringsFromDB() {
         SQLiteDatabase db = mSQLHelper.getReadableDatabase();
 
         ArrayList<String> list = new ArrayList<String>();
@@ -246,7 +246,7 @@ public class StartActivity extends AppCompatActivity {
         return castToString(list.toArray());
     }
 
-    String[] castToString(Object[] objects) {
+    private String[] castToString(Object[] objects) {
         if (objects == null || objects.length == 0) return null;
         String[] result = new String[objects.length];
         for (int i = 0; i < objects.length; i++) {

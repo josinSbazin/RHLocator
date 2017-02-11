@@ -18,12 +18,12 @@ import ru.com.rh.rhlocator.R;
 
 
 public abstract class LocationIntentService extends IntentService {
-    protected static final String TAG = "FetchAddressIS";
-    protected static final long TIME_OUT = 5 * 1000;
+    static final String TAG = "FetchAddressIS";
+    static final long TIME_OUT = 5 * 1000;
 
-    protected ResultReceiver mReceiver;
-    protected Location mLocation;
-    protected Timer mTimer;
+    ResultReceiver mReceiver;
+    Location mLocation;
+    Timer mTimer;
 
 
     public LocationIntentService() {
@@ -41,7 +41,7 @@ public abstract class LocationIntentService extends IntentService {
         getLocation();
     }
 
-    protected void getCityName(Location location) {
+    void getCityName(Location location) {
         String errorMessage = "";
 
         if (location == null) {

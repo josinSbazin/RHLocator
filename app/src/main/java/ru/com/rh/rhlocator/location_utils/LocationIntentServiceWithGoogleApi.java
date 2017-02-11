@@ -22,12 +22,12 @@ import ru.com.rh.rhlocator.R;
 public class LocationIntentServiceWithGoogleApi extends LocationIntentService implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    protected static final int LOCATION_INTERVAL = 1000;
+    private static final int LOCATION_INTERVAL = 1000;
 
     private FusedLocationProviderApi mFusedLocationProviderApi;
     private GoogleApiClient mGoogleApiClient;
 
-    protected synchronized void buildGoogleApiClient() {
+    private synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -87,7 +87,7 @@ public class LocationIntentServiceWithGoogleApi extends LocationIntentService im
         }
     }
 
-    class GetLocation extends TimerTask {
+    private class GetLocation extends TimerTask {
         @Override
         public void run() {
             try {

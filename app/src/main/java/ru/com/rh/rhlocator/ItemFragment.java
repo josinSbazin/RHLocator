@@ -13,8 +13,8 @@ import android.widget.Toast;
 
 public class ItemFragment extends DialogFragment implements AdapterView.OnItemClickListener {
 
-    String[] listitems;
-    ListView mylist;
+    private String[] listitems;
+    private ListView mylist;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -23,9 +23,8 @@ public class ItemFragment extends DialogFragment implements AdapterView.OnItemCl
         View view = inflater.inflate(R.layout.dialog_fragment, null, false);
         mylist = (ListView) view.findViewById(R.id.list);
 
-
-
-        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        Window window = getDialog().getWindow();
+        if (window != null) window.requestFeature(Window.FEATURE_NO_TITLE);
         return view;
     }
 

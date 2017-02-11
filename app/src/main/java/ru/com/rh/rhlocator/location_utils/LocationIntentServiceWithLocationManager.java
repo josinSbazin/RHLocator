@@ -45,7 +45,7 @@ public class LocationIntentServiceWithLocationManager extends LocationIntentServ
             }
     }
 
-    LocationListener locationListenerGps = new LocationListener() {
+    private final LocationListener locationListenerGps = new LocationListener() {
         public void onLocationChanged(Location location) {
             mTimer.cancel();
             try {
@@ -59,7 +59,7 @@ public class LocationIntentServiceWithLocationManager extends LocationIntentServ
         public void onStatusChanged(String provider, int status, Bundle extras) {}
     };
 
-    LocationListener locationListenerNetwork = new LocationListener() {
+    private final LocationListener locationListenerNetwork = new LocationListener() {
         public void onLocationChanged(Location location) {
             mTimer.cancel();
             try {
@@ -80,7 +80,7 @@ public class LocationIntentServiceWithLocationManager extends LocationIntentServ
         mReceiver.send(resultCode, bundle);
     }
 
-    class GetLocation extends TimerTask {
+    private class GetLocation extends TimerTask {
         @Override
         public void run() {
             try {

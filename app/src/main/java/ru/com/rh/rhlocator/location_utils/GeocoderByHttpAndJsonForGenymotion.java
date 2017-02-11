@@ -5,7 +5,6 @@ import android.util.Log;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -16,12 +15,13 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
-public class GeocoderByHttpAndJsonForGenymotion {
+class GeocoderByHttpAndJsonForGenymotion {
 
-    public static JSONObject getLocationInfo(double lat, double lng) {
+    private static JSONObject getLocationInfo(double lat, double lng) {
 
-        HttpGet httpGet = new HttpGet("http://maps.googleapis.com/maps/api/geocode/json?latlng="+ lat+","+lng +"&sensor=true");
+        HttpGet httpGet = new HttpGet("http://maps.googleapis.com/maps/api/geocode/json?latlng="+ lat + "," + lng +"&&language=ru&sensor=true");
         HttpClient client = new DefaultHttpClient();
         HttpResponse response;
         StringBuilder stringBuilder = new StringBuilder();
@@ -34,8 +34,7 @@ public class GeocoderByHttpAndJsonForGenymotion {
             while ((b = stream.read()) != -1) {
                 stringBuilder.append((char) b);
             }
-        } catch (ClientProtocolException e) {
-        } catch (IOException e) {
+        } catch (IOException e) { e.printStackTrace();
         }
 
         JSONObject jsonObject = new JSONObject();
@@ -48,43 +47,40 @@ public class GeocoderByHttpAndJsonForGenymotion {
         return jsonObject;
     }
 
-    public static String getCurrentLocationViaJSON(double lat, double lng) {
+    static String getCurrentLocationViaJSON(double lat, double lng) {
 
         JSONObject jsonObj = getLocationInfo(lat, lng);
-        Log.i("JSON string =>", jsonObj.toString());
 
-        String currentLocation = "testing";
-        String street_address = null;
-        String postal_code = null;
+        String currentLocation = null;
 
         try {
-            String status = jsonObj.getString("status").toString();
-            Log.i("status", status);
+            String status = jsonObj.getString("status");
 
             if(status.equalsIgnoreCase("OK")){
                 JSONArray results = jsonObj.getJSONArray("results");
                 int i = 0;
                 do{
                     JSONObject r = results.getJSONObject(i);
-                    JSONArray typesArray = r.getJSONArray("types");
-                    String types = typesArray.getString(0);
+                    JSONArray typesArray = r.getJSONArray("address_components");
+                    for (int j = 0; j < typesArray.length(); j++) {
+                        JSONObject m = typesArray.getJSONObject(j);
+                        String types = m.toString();
 
-                    if(types.equalsIgnoreCase("street_address")) {
-                        street_address = r.getString("formatted_address").split(",")[2];
+                        if (types.matches(".*(locality).*(political).*")) {
+                            currentLocation = new String(m.getString("long_name").getBytes("ISO-8859-1"), "UTF-8");
+                            if (!currentLocation.equals("")) break;
+                        }
                     }
-                    if(street_address!=null){
-                        currentLocation = street_address;
-                        i = results.length();
-                    }
-
                     i++;
-                }while(i<results.length());
+                } while(i<results.length());
 
-                return currentLocation;
+                return currentLocation == null ? "Can't resolve location name, sry" : currentLocation;
             }
 
         } catch (JSONException e) {
             Log.e("testing","Failed to load JSON");
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return null;
