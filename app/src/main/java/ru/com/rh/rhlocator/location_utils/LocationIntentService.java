@@ -75,6 +75,7 @@ public abstract class LocationIntentService extends IntentService {
                 errorMessage = getString(R.string.no_address_found);
                 Log.e(TAG, errorMessage);
             }
+            //TODO Сделать в AsynkTask
             String address = GeocoderByHttpAndJsonForGenymotion.getCurrentLocationViaJSON(location.getLatitude(), location.getLongitude());
             if (address != null && !address.equals(""))
                 deliverResultToReceiver(Constants.SUCCESS_RESULT, address);
